@@ -297,11 +297,12 @@ def _draw_page(c, geo: dict, alignment_name: str):
         c.circle(npt_x, npt_y, 2.0 * mm, stroke=1, fill=0)
         c.circle(npt_x, npt_y, 0.4 * mm, stroke=0, fill=1)
 
-        # -- Label --
+        # -- Label: placed just beyond the right end of the grid lines --
+        # The tangent vector points leftward for both null points, so
+        # the right end of the grid is in the -tangential direction.
         c.setFillColorRGB(0, 0, 0.6)
         c.setFont("Helvetica", 7)
-        # Place label offset perpendicular to radial direction
-        lx, ly = pt(nx + tan_x * (GRID_REACH_MM + 2), ny + tan_y * (GRID_REACH_MM + 2))
+        lx, ly = pt(nx - tan_x * (GRID_REACH_MM + 2), ny - tan_y * (GRID_REACH_MM + 2))
         c.drawString(lx, ly, label)
 
     # ------------------------------------------------------------------
