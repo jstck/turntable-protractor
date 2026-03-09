@@ -22,7 +22,7 @@ python protractor.py <D> [-a TYPE] [--all] [-o FILE]
 
 | Flag | Values | Default | Description |
 |------|--------|---------|-------------|
-| `-a` | `baerwald`, `lofgren_b`, `stevenson` | `baerwald` | Alignment type (single-page mode) |
+| `-a` | `baerwald`, `lofgren_a`, `lofgren_b`, `stevenson` | `baerwald` | Alignment type (single-page mode) |
 | `--all` | — | — | Generate all three alignments as a single multi-page PDF |
 | `-o` | filename | `protractor_<type>_<D>mm.pdf` / `protractor_all_<D>mm.pdf` | Output PDF path |
 
@@ -56,6 +56,8 @@ All three alignments target two null radii — groove positions where tracking e
 | **Löfgren A / Baerwald** | 66.0 mm, 120.9 mm | Minimum peak (maximum) tracking distortion |
 | **Löfgren B** | 70.3 mm, 116.6 mm | Minimum average distortion; lower error across most of the record but slightly higher at the inner and outer extremes |
 | **Stevenson** | 60.325 mm, 117.42 mm | Null point at the inner groove radius — minimises distortion on the innermost grooves at the expense of higher error elsewhere |
+
+Note that the two options `baerwald` and `lofgren_a` are aliases for the exact same algorithm.
 
 ## Calculated parameters
 
