@@ -29,10 +29,10 @@ python protractor.py <D> [-a TYPE] [--all] [-o FILE]
 ### Examples
 
 ```bash
-# Baerwald alignment, 215 mm pivot-to-spindle distance
+# Löfgren A / Baerwald alignment, 215 mm pivot-to-spindle distance
 python protractor.py 215
 
-# Lofgren B, custom output name
+# Löfgren B, custom output name
 python protractor.py 222.0 -a lofgren_b -o my_arm.pdf
 
 # Stevenson, 211.5 mm
@@ -53,9 +53,9 @@ All three alignments target two null radii — groove positions where tracking e
 
 | Type | Null radii | Optimises for |
 |------|-----------|---------------|
-| **Lofgren A / Baerwald** | 66.0 mm, 120.9 mm | Minimum RMS tracking distortion across the whole record — the most widely recommended default |
-| **Lofgren B** | 70.3 mm, 116.6 mm | Minimum peak tracking error — the maximum error anywhere on the record is as small as possible |
-| **Stevenson** | 60.325 mm, 117.42 mm | Null point coincides with the inner groove radius — prioritises the end of the record where distortion is otherwise highest |
+| **Löfgren A / Baerwald** | 66.0 mm, 120.9 mm | Minimum peak (maximum) tracking distortion |
+| **Löfgren B** | 70.3 mm, 116.6 mm | Minimum average distortion; lower error across most of the record but slightly higher at the inner and outer extremes |
+| **Stevenson** | 60.325 mm, 117.42 mm | Null point at the inner groove radius — minimises distortion on the innermost grooves at the expense of higher error elsewhere |
 
 ## Calculated parameters
 

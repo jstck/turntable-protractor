@@ -30,14 +30,19 @@ import sys
 # At each null radius the stylus is perfectly tangent to the groove.
 # The alignment type determines which null radii are targeted.
 
+# Alternative names that map to canonical ALIGNMENTS keys
+ALIASES = {
+    "lofgren_a": "baerwald",
+}
+
 ALIGNMENTS = {
     "baerwald": {
-        "name": "Lofgren A / Baerwald",
+        "name": "Löfgren A / Baerwald",
         "r1": 66.0,      # inner null radius (mm)
         "r2": 120.9,     # outer null radius (mm)
     },
     "lofgren_b": {
-        "name": "Lofgren B",
+        "name": "Löfgren B",
         "r1": 70.3,
         "r2": 116.6,
     },
@@ -480,9 +485,9 @@ Examples:
   python protractor.py 215 --all -o all_alignments.pdf
 
 Alignment types:
-  baerwald   Lofgren A / Baerwald  – minimises RMS tracking distortion  [default]
-  lofgren_b  Lofgren B             – minimises peak tracking distortion
-  stevenson  Stevenson             – null at inner groove, minimises outer error
+  baerwald / lofgren_a   Löfgren A / Baerwald  – minimises peak tracking distortion  [default]
+  lofgren_b              Löfgren B             – minimises average tracking distortion
+  stevenson              Stevenson             – null at inner groove, minimises inner-groove error
         """,
     )
     parser.add_argument(
@@ -493,10 +498,10 @@ Alignment types:
     )
     parser.add_argument(
         "-a", "--alignment",
-        choices=list(ALIGNMENTS.keys()),
+        choices=list(ALIGNMENTS.keys()) + list(ALIASES.keys()),
         default="baerwald",
         metavar="TYPE",
-        help="Alignment type: baerwald (default), lofgren_b, stevenson",
+        help="Alignment type: baerwald/lofgren_a (default), lofgren_b, stevenson",
     )
     parser.add_argument(
         "--all",
@@ -526,8 +531,10 @@ Alignment types:
         print()
         draw_all_pdf(D, output)
     else:
-        alignment = ALIGNMENTS[args.alignment]
-        output    = args.output or f"protractor_{args.alignment}_{int(D)}mm.pdf"
+        atype     = args.alignment or "baerwald"
+        key       = ALIASES.get(atype, atype)
+        alignment = ALIGNMENTS[key]
+        output    = args.output or f"protractor_{key}_{int(D)}mm.pdf"
         geo       = compute_geometry(D, alignment["r1"], alignment["r2"])
 
         print(f"\nAlignment       : {alignment['name']}")
