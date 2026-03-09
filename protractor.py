@@ -369,21 +369,41 @@ def draw_protractor_pdf(geo: dict, alignment_name: str, output_path: str):
                         "Verify scale bar measures exactly 100 mm before use.")
 
     # ------------------------------------------------------------------
-    # Instructions (right margin, rotated)
+    # Instructions (between header and graphics)
     # ------------------------------------------------------------------
-    c.setFont("Helvetica", 6.5)
-    c.setFillColorRGB(0.4, 0.4, 0.4)
-    instructions = (
-        "HOW TO USE: (1) Place protractor on platter with spindle through the centre hole.  "
-        "(2) Swing tonearm to inner null point — stylus tip must sit on the red dot.  "
-        "Align cartridge body parallel to the tangential grid lines.  "
-        "(3) Repeat at outer null point.  Adjust overhang and azimuth until both null points check out."
-    )
-    c.saveState()
-    c.translate(page_w - 8 * mm, page_h / 2)
-    c.rotate(90)
-    c.drawCentredString(0, 0, instructions)
-    c.restoreState()
+    # The params block ends at roughly page_h − 43 mm; the outer null
+    # point reaches to about SP_Y_MM + r2 ≈ 155 mm from the bottom.
+    # Centre the instruction block in that gap.
+    instr_steps = [
+        ("HOW TO USE", None),
+        ("1.", "Place the protractor on the platter with the spindle through the centre hole."),
+        ("2.", "Swing the tonearm to the inner null point — stylus tip must sit on the red dot."),
+        ("3.", "Align the cartridge body parallel to the tangential grid lines."),
+        ("4.", "Repeat at the outer null point.  Adjust overhang and/or azimuth, then repeat"
+               " until the cartridge is parallel to the grid lines at both null points."),
+    ]
+    LINE_H    = 4.8 * mm
+    INSTR_W   = 160 * mm                       # text column width
+    instr_x   = (page_w - INSTR_W) / 2
+    # Vertical centre of the blank gap
+    gap_top_pt    = page_h - 43 * mm
+    gap_bottom_pt = (SP_Y_MM + r2 + 8) * mm   # a little above the outer null
+    instr_y = (gap_top_pt + gap_bottom_pt) / 2 + (len(instr_steps) * LINE_H) / 2
+
+    for num, text in instr_steps:
+        if text is None:
+            # Section heading
+            c.setFont("Helvetica-Bold", 7.5)
+            c.setFillColorRGB(0, 0, 0)
+            c.drawCentredString(page_w / 2, instr_y, num)
+        else:
+            c.setFont("Helvetica-Bold", 7.5)
+            c.setFillColorRGB(0.3, 0.3, 0.3)
+            c.drawString(instr_x, instr_y, num)
+            c.setFont("Helvetica", 7.5)
+            c.setFillColorRGB(0.2, 0.2, 0.2)
+            c.drawString(instr_x + 7 * mm, instr_y, text)
+        instr_y -= LINE_H
 
     c.save()
     print(f"Saved: {output_path}")
