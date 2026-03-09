@@ -252,6 +252,36 @@ def _draw_page(c, geo: dict, alignment_name: str):
         c.line(sp_x_pt, sp_y_pt, ex, ey)
 
     # ------------------------------------------------------------------
+    # 3b. Spindle-to-pivot axis line
+    # ------------------------------------------------------------------
+    # The pivot sits at (−D, 0) in spindle-relative coords; for typical
+    # arms it is off the left edge of the page.  Draw a dashed line from
+    # the spindle toward the pivot, clipping at the page margin.
+    MARGIN_MM = 5.0
+    line_end_x = max(-SP_X_MM + MARGIN_MM, -D)   # stop at page edge or pivot
+    lx0, ly0 = pt(0, 0)
+    lx1, ly1 = pt(line_end_x, 0)
+    c.setStrokeColorRGB(0.45, 0.45, 0.45)
+    c.setLineWidth(0.5)
+    c.setDash(4, 3)
+    c.line(lx0, ly0, lx1, ly1)
+    c.setDash()
+    # Label near the spindle end of the line (always visible on the page)
+    c.setFillColorRGB(0.35, 0.35, 0.35)
+    c.setFont("Helvetica", 6.5)
+    if -D < -SP_X_MM + MARGIN_MM:
+        # Pivot is off-page; place label just left of the spindle marker
+        lx_label, ly_label = pt(-10, 1.5)
+        c.drawRightString(lx_label, ly_label, f"← pivot  ({D:.0f} mm)")
+    else:
+        # Pivot fits on page; mark it with a small tick
+        c.setStrokeColorRGB(0.45, 0.45, 0.45)
+        c.setLineWidth(0.5)
+        tx, ty = pt(-D, 0)
+        c.line(tx, ty - 2 * mm, tx, ty + 2 * mm)
+        c.drawCentredString(tx, ty - 4 * mm, "pivot")
+
+    # ------------------------------------------------------------------
     # 4. Null-point alignment grids
     # ------------------------------------------------------------------
     GRID_REACH_MM  = 18.0   # how far tangential lines extend from null pt
