@@ -136,15 +136,21 @@ def arc_point_on_groove(L: float, D: float, r_groove: float):
 # PDF drawing
 # ---------------------------------------------------------------------------
 
-def draw_protractor_pdf(geo: dict, alignment_name: str, output_path: str):
-    """Generate the protractor PDF."""
+def _require_reportlab():
     try:
         from reportlab.pdfgen import canvas as pdfcanvas
         from reportlab.lib.units import mm
         from reportlab.lib.pagesizes import A4
+        return pdfcanvas, mm, A4
     except ImportError:
         print("Error: reportlab is required.  Install with:\n  pip install reportlab")
         sys.exit(1)
+
+
+def _draw_page(c, geo: dict, alignment_name: str):
+    """Draw one protractor page onto an existing canvas (already positioned on a blank page)."""
+    from reportlab.lib.units import mm
+    from reportlab.lib.pagesizes import A4
 
     page_w, page_h = A4   # points (1 pt = 1/72 inch ≈ 0.353 mm)
 
@@ -169,8 +175,6 @@ def draw_protractor_pdf(geo: dict, alignment_name: str, output_path: str):
     r2 = geo["r2"]
     null1 = geo["null1"]
     null2 = geo["null2"]
-
-    c = pdfcanvas.Canvas(output_path, pagesize=A4)
 
     # ------------------------------------------------------------------
     # 1. Tonearm arc (stylus path)
@@ -404,9 +408,28 @@ def draw_protractor_pdf(geo: dict, alignment_name: str, output_path: str):
             c.setFillColorRGB(0.2, 0.2, 0.2)
             c.drawString(instr_x + 7 * mm, instr_y, text)
         instr_y -= LINE_H
+    # _draw_page ends here — caller is responsible for showPage() / save()
 
+
+def draw_protractor_pdf(geo: dict, alignment_name: str, output_path: str):
+    """Generate a single-page protractor PDF."""
+    pdfcanvas, _, A4 = _require_reportlab()
+    c = pdfcanvas.Canvas(output_path, pagesize=A4)
+    _draw_page(c, geo, alignment_name)
     c.save()
     print(f"Saved: {output_path}")
+
+
+def draw_all_pdf(D: float, output_path: str):
+    """Generate a multi-page PDF with one page per alignment type."""
+    pdfcanvas, _, A4 = _require_reportlab()
+    c = pdfcanvas.Canvas(output_path, pagesize=A4)
+    for alignment in ALIGNMENTS.values():
+        geo = compute_geometry(D, alignment["r1"], alignment["r2"])
+        _draw_page(c, geo, alignment["name"])
+        c.showPage()
+    c.save()
+    print(f"Saved: {output_path}  ({len(ALIGNMENTS)} pages)")
 
 
 # ---------------------------------------------------------------------------
@@ -422,6 +445,8 @@ Examples:
   python protractor.py 215
   python protractor.py 222.0 -a lofgren_b
   python protractor.py 211.5 -a stevenson -o stevenson_211.pdf
+  python protractor.py 215 --all
+  python protractor.py 215 --all -o all_alignments.pdf
 
 Alignment types:
   baerwald   Lofgren A / Baerwald  – minimises RMS tracking distortion  [default]
@@ -443,30 +468,47 @@ Alignment types:
         help="Alignment type: baerwald (default), lofgren_b, stevenson",
     )
     parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Generate all three alignment types as a single multi-page PDF",
+    )
+    parser.add_argument(
         "-o", "--output",
         default=None,
         metavar="FILE",
-        help="Output PDF path (default: protractor_<type>_<D>mm.pdf)",
+        help="Output PDF path (default: protractor_<type>_<D>mm.pdf  or  protractor_all_<D>mm.pdf)",
     )
     args = parser.parse_args()
 
     if args.distance <= 0:
         parser.error("Distance must be a positive number.")
 
-    alignment = ALIGNMENTS[args.alignment]
-    output    = args.output or f"protractor_{args.alignment}_{int(args.distance)}mm.pdf"
-    geo       = compute_geometry(args.distance, alignment["r1"], alignment["r2"])
+    D = args.distance
 
-    print(f"\nAlignment       : {alignment['name']}")
-    print(f"Pivot-to-spindle: {geo['D']:.1f} mm  (input)")
-    print(f"Effective length: {geo['L']:.2f} mm")
-    print(f"Offset angle    : {geo['beta']:.2f}°")
-    print(f"Overhang        : {geo['h']:.2f} mm")
-    print(f"Null radii      : {geo['r1']:.3f} mm  /  {geo['r2']:.3f} mm")
-    print(f"Null positions  : ({geo['null1'][0]:.2f}, {geo['null1'][1]:.2f}) mm")
-    print(f"                  ({geo['null2'][0]:.2f}, {geo['null2'][1]:.2f}) mm\n")
+    if args.all:
+        output = args.output or f"protractor_all_{int(D)}mm.pdf"
+        for alignment in ALIGNMENTS.values():
+            geo = compute_geometry(D, alignment["r1"], alignment["r2"])
+            print(f"\nAlignment       : {alignment['name']}")
+            print(f"Effective length: {geo['L']:.2f} mm  |  "
+                  f"Offset angle: {geo['beta']:.2f}°  |  Overhang: {geo['h']:.2f} mm")
+        print()
+        draw_all_pdf(D, output)
+    else:
+        alignment = ALIGNMENTS[args.alignment]
+        output    = args.output or f"protractor_{args.alignment}_{int(D)}mm.pdf"
+        geo       = compute_geometry(D, alignment["r1"], alignment["r2"])
 
-    draw_protractor_pdf(geo, alignment["name"], output)
+        print(f"\nAlignment       : {alignment['name']}")
+        print(f"Pivot-to-spindle: {geo['D']:.1f} mm  (input)")
+        print(f"Effective length: {geo['L']:.2f} mm")
+        print(f"Offset angle    : {geo['beta']:.2f}°")
+        print(f"Overhang        : {geo['h']:.2f} mm")
+        print(f"Null radii      : {geo['r1']:.3f} mm  /  {geo['r2']:.3f} mm")
+        print(f"Null positions  : ({geo['null1'][0]:.2f}, {geo['null1'][1]:.2f}) mm")
+        print(f"                  ({geo['null2'][0]:.2f}, {geo['null2'][1]:.2f}) mm\n")
+
+        draw_protractor_pdf(geo, alignment["name"], output)
 
 
 if __name__ == "__main__":

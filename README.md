@@ -13,7 +13,7 @@ pip install reportlab
 ## Usage
 
 ```
-python protractor.py <D> [-a TYPE] [-o FILE]
+python protractor.py <D> [-a TYPE] [--all] [-o FILE]
 ```
 
 **D** is the pivot-to-spindle distance in millimetres — the distance from the tonearm pivot centre to the platter spindle centre. This is the only measurement you need to take from your turntable.
@@ -22,8 +22,9 @@ python protractor.py <D> [-a TYPE] [-o FILE]
 
 | Flag | Values | Default | Description |
 |------|--------|---------|-------------|
-| `-a` | `baerwald`, `lofgren_b`, `stevenson` | `baerwald` | Alignment type |
-| `-o` | filename | `protractor_<type>_<D>mm.pdf` | Output PDF path |
+| `-a` | `baerwald`, `lofgren_b`, `stevenson` | `baerwald` | Alignment type (single-page mode) |
+| `--all` | — | — | Generate all three alignments as a single multi-page PDF |
+| `-o` | filename | `protractor_<type>_<D>mm.pdf` / `protractor_all_<D>mm.pdf` | Output PDF path |
 
 ### Examples
 
@@ -36,6 +37,12 @@ python protractor.py 222.0 -a lofgren_b -o my_arm.pdf
 
 # Stevenson, 211.5 mm
 python protractor.py 211.5 -a stevenson
+
+# All three alignments in one PDF
+python protractor.py 215 --all
+
+# All three, custom output name
+python protractor.py 215 --all -o all_alignments.pdf
 ```
 
 The script prints the calculated tonearm parameters to the terminal and saves the PDF.
