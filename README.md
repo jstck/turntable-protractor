@@ -1,6 +1,6 @@
 # Vinyl Turntable Pickup Alignment Protractor Generator
 
-Generates a printable 1:1 scale PDF protractor on A4 paper for aligning a phono cartridge on a pivoted tonearm.
+Generates a printable 1:1 scale PDF protractor on A4 paper for aligning a phono cartridge on a pivoted tonearm. If you're printing on some other paper size, just make sure to print it at 100% scale.
 
 ## Requirements
 
